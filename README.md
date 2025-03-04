@@ -51,6 +51,10 @@ npm install
 ```
 MONGODB_URI=mongodb://localhost:27017/asset-management
 PORT=3000
+
+JWT_SECRET=jubilee_asset_management_secret_key_2024
+MONGODB_URI=mongodb://localhost:27017/assetManagement
+NODE_ENV=development
 ```
 
 4. Create required directories:
