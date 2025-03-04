@@ -1,0 +1,144 @@
+<style>
+  .users-container {
+    padding: 20px;
+  }
+
+  .users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .add-user-btn {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+  }
+
+  .add-user-btn:hover {
+    background: #218838;
+  }
+
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .users-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  .user-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .user-actions a {
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+  }
+
+  .edit-btn {
+    background: #007bff;
+  }
+
+  .edit-btn:hover {
+    background: #0056b3;
+  }
+
+  .delete-btn {
+    background: #dc3545;
+  }
+
+  .delete-btn:hover {
+    background: #c82333;
+  }
+
+  .role-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .role-admin {
+    background: #dc3545;
+    color: white;
+  }
+
+  .role-user {
+    background: #28a745;
+    color: white;
+  }
+</style>
+
+<div class="users-container">
+  <div class="users-header">
+    <h2>User Management</h2>
+    <a href="/users/add" class="add-user-btn">Add New User</a>
+  </div>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="error-message">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <% if (typeof success !== 'undefined' && success) { %>
+    <div class="success-message">
+      <%= success %>
+    </div>
+  <% } %>
+
+  <table class="users-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Company</th>
+        <th>Role</th>
+        <th>Last Login</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.username %></td>
+          <td><%= user.fullName %></td>
+          <td><%= user.email %></td>
+          <td><%= user.company %></td>
+          <td>
+            <span class="role-badge role-<%= user.role %>">
+              <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+            </span>
+          </td>
+          <td><%= user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never' %></td>
+          <td class="user-actions">
+            <a href="/users/edit/<%= user._id %>" class="edit-btn">Edit</a>
+            <% if (user.role !== 'admin' || users.filter(u => u.role === 'admin').length > 1) { %>
+              <a href="/users/delete/<%= user._id %>" class="delete-btn" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div> 

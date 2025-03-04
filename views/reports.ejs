@@ -1,0 +1,183 @@
+<%- contentFor('body') %>
+<style>
+  .reports-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .report-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .report-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+
+  .report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .report-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+
+  .report-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .report-btn:hover {
+    background: var(--primary-hover);
+  }
+
+  .report-btn.secondary {
+    background: #6c757d;
+  }
+
+  .report-btn.secondary:hover {
+    background: #5a6268;
+  }
+
+  .date-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .date-filters input {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .stat-card h4 {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+</style>
+
+<div class="reports-container">
+  <h2>Reports Dashboard</h2>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Machines</h4>
+      <div class="stat-value"><%= totalMachines %></div>
+    </div>
+    <div class="stat-card">
+      <h4>Active Machines</h4>
+      <div class="stat-value"><%= activeMachines %></div>
+    </div>
+    <div class="stat-card">
+      <h4>Under Maintenance</h4>
+      <div class="stat-value"><%= maintenanceMachines %></div>
+    </div>
+    <div class="stat-card">
+      <h4>Total Users</h4>
+      <div class="stat-value"><%= totalUsers %></div>
+    </div>
+  </div>
+
+  <div class="report-cards">
+    <!-- Asset Reports -->
+    <div class="report-card">
+      <h3>Asset Reports</h3>
+      <div class="report-options">
+        <a href="/reports/export/assets" class="report-btn">
+          <i class="fas fa-download"></i>
+          Export All Assets
+        </a>
+        <a href="/reports/export/assets-by-company" class="report-btn">
+          <i class="fas fa-building"></i>
+          Assets by Company
+        </a>
+        <a href="/reports/export/maintenance" class="report-btn">
+          <i class="fas fa-tools"></i>
+          Maintenance Report
+        </a>
+      </div>
+    </div>
+
+    <!-- User Reports -->
+    <div class="report-card">
+      <h3>User Reports</h3>
+      <div class="report-options">
+        <a href="/reports/export/users" class="report-btn">
+          <i class="fas fa-users"></i>
+          Export User List
+        </a>
+        <a href="/reports/export/user-assets" class="report-btn">
+          <i class="fas fa-laptop-house"></i>
+          User Asset Allocation
+        </a>
+      </div>
+    </div>
+
+    <!-- Custom Report -->
+    <div class="report-card">
+      <h3>Custom Report</h3>
+      <form action="/reports/custom" method="GET">
+        <div class="date-filters">
+          <input type="date" name="startDate" required>
+          <input type="date" name="endDate" required>
+        </div>
+        <div class="report-options">
+          <button type="submit" class="report-btn">
+            <i class="fas fa-file-export"></i>
+            Generate Custom Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> 

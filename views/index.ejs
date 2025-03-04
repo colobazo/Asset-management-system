@@ -1,0 +1,153 @@
+<div class="container mt-4">
+    <% if (success) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= success %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <% if (error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= error %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <!-- Global Search Box -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="/search" method="GET" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="query" class="form-control" placeholder="Search assets by serial number, tag number, or username..." value="<%= typeof query !== 'undefined' ? query : '' %>">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <% if (selectedCompany) { %>
+        <!-- Company Asset Types View -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><a href="/" class="text-decoration-none text-dark"><i class="fas fa-arrow-left me-2"></i></a><%= selectedCompany %></h2>
+                <p class="text-muted">Total Assets: <%= filteredMachines.length %></p>
+            </div>
+            <% if (user && user.role === 'admin') { %>
+                <a href="/add" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Asset
+                </a>
+            <% } %>
+        </div>
+
+        <!-- Asset Types Overview -->
+        <div class="row">
+            <% assetTypeStats.forEach(function(stat) { %>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 asset-type-card">
+                        <div class="card-body">
+                            <h5 class="card-title"><%= stat.name %></h5>
+                            <div class="mt-3">
+                                <p class="mb-2">
+                                    <i class="fas fa-laptop me-2 text-primary"></i>
+                                    Total: <%= stat.total %>
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-check-circle me-2 text-success"></i>
+                                    Active: <%= stat.active %>
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-tools me-2 text-warning"></i>
+                                    Maintenance: <%= stat.maintenance %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+
+        <!-- Asset List -->
+        <div class="card mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Asset List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Asset Type</th>
+                                <th>Serial Number</th>
+                                <th>Model</th>
+                                <th>User</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% filteredMachines.forEach(function(machine) { %>
+                                <tr>
+                                    <td><%= machine.assetType ? machine.assetType.name : 'N/A' %></td>
+                                    <td><%= machine.serialNumber %></td>
+                                    <td><%= machine.modelName %></td>
+                                    <td><%= machine.username || 'Unassigned' %></td>
+                                    <td>
+                                        <span class="badge <%= machine.operationalStatus === 'Operational' ? 'bg-success' : 'bg-warning' %>">
+                                            <%= machine.operationalStatus %>
+                                        </span>
+                                    </td>
+                                    <td><%= machine.location %></td>
+                                    <td>
+                                        <a href="/view/<%= machine._id %>" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <% if (user && user.role === 'admin') { %>
+                                            <a href="/edit/<%= machine._id %>" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    <% } else { %>
+        <!-- Company Overview -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Company Overview</h2>
+            <% if (user && user.role === 'admin') { %>
+                <a href="/add" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Asset
+                </a>
+            <% } %>
+        </div>
+
+        <div class="row">
+            <% Object.entries(companyStats).forEach(function([company, stats]) { %>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <a href="/company/<%= company.toLowerCase().replace(/\s+/g, '-') %>" class="text-decoration-none">
+                        <div class="card h-100 company-card">
+                            <div class="card-body">
+                                <h5 class="card-title text-dark"><%= company %></h5>
+                                <div class="mt-3">
+                                    <h3 class="text-primary mb-0">
+                                        <i class="fas fa-desktop me-2"></i>
+                                        <%= stats.totalAssets %>
+                                    </h3>
+                                    <p class="text-muted mb-0">Total Assets</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+</div>

@@ -1,0 +1,371 @@
+<%- contentFor('body') %>
+<style>
+  .asset-types-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .asset-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .asset-type-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+
+  .asset-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .asset-type-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .asset-type-name {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin: 0;
+  }
+
+  .asset-type-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .edit-btn {
+    background: #ffc107;
+    color: #000;
+  }
+
+  .delete-btn {
+    background: #dc3545;
+    color: #fff;
+  }
+
+  .action-btn:hover {
+    opacity: 0.8;
+  }
+
+  .attributes-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .attribute-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .attribute-item:last-child {
+    border-bottom: none;
+  }
+
+  .add-type-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .add-type-btn:hover {
+    background: var(--primary-hover);
+  }
+
+  /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+  }
+
+  .modal-content {
+    position: relative;
+    background: white;
+    margin: 5% auto;
+    padding: 2rem;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 8px;
+  }
+
+  .close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .attributes-container {
+    margin-top: 1rem;
+  }
+
+  .attribute-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .remove-attribute {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+</style>
+
+<div class="asset-types-container">
+  <div class="asset-type-header">
+    <h2>Asset Types</h2>
+    <button class="add-type-btn" onclick="openModal()">
+      <i class="fas fa-plus"></i>
+      Add Asset Type
+    </button>
+  </div>
+
+  <div class="asset-type-grid">
+    <% assetTypes.forEach(type => { %>
+      <div class="asset-type-card">
+        <div class="asset-type-header">
+          <h3 class="asset-type-name"><%= type.name %></h3>
+          <div class="asset-type-actions">
+            <button class="action-btn edit-btn" onclick="editAssetType('<%= type._id %>')">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteAssetType('<%= type._id %>')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <p><%= type.description %></p>
+        <h4>Attributes:</h4>
+        <ul class="attributes-list">
+          <% type.attributes.forEach(attr => { %>
+            <li class="attribute-item">
+              <span><%= attr.name %></span>
+              <span><%= attr.type %><%= attr.required ? ' *' : '' %></span>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<!-- Add/Edit Asset Type Modal -->
+<div id="assetTypeModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal()">&times;</span>
+    <h3 id="modalTitle">Add Asset Type</h3>
+    <form id="assetTypeForm" onsubmit="handleSubmit(event)">
+      <input type="hidden" id="assetTypeId" name="id">
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input type="text" id="name" name="name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+      </div>
+      <div class="attributes-container">
+        <h4>Attributes</h4>
+        <div id="attributesList"></div>
+        <button type="button" class="add-type-btn" onclick="addAttribute()">
+          <i class="fas fa-plus"></i>
+          Add Attribute
+        </button>
+      </div>
+      <div class="form-group" style="margin-top: 1rem;">
+        <button type="submit" class="add-type-btn">Save Asset Type</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentAttributes = [];
+
+function openModal(typeId = null) {
+  const modal = document.getElementById('assetTypeModal');
+  const form = document.getElementById('assetTypeForm');
+  const title = document.getElementById('modalTitle');
+  
+  if (typeId) {
+    title.textContent = 'Edit Asset Type';
+    // Fetch asset type data and populate form
+    fetch(`/asset-types/${typeId}`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('assetTypeId').value = data._id;
+        document.getElementById('name').value = data.name;
+        document.getElementById('description').value = data.description;
+        currentAttributes = data.attributes;
+        renderAttributes();
+      });
+  } else {
+    title.textContent = 'Add Asset Type';
+    form.reset();
+    document.getElementById('assetTypeId').value = '';
+    currentAttributes = [];
+    renderAttributes();
+  }
+  
+  modal.style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('assetTypeModal').style.display = 'none';
+}
+
+function addAttribute() {
+  currentAttributes.push({
+    name: '',
+    type: 'text',
+    required: false,
+    options: []
+  });
+  renderAttributes();
+}
+
+function removeAttribute(index) {
+  currentAttributes.splice(index, 1);
+  renderAttributes();
+}
+
+function renderAttributes() {
+  const container = document.getElementById('attributesList');
+  container.innerHTML = currentAttributes.map((attr, index) => `
+    <div class="attribute-row">
+      <input type="text" class="form-control" placeholder="Attribute Name" 
+        value="${attr.name}" onchange="updateAttribute(${index}, 'name', this.value)" required>
+      <select class="form-control" onchange="updateAttribute(${index}, 'type', this.value)">
+        <option value="text" ${attr.type === 'text' ? 'selected' : ''}>Text</option>
+        <option value="number" ${attr.type === 'number' ? 'selected' : ''}>Number</option>
+        <option value="date" ${attr.type === 'date' ? 'selected' : ''}>Date</option>
+        <option value="select" ${attr.type === 'select' ? 'selected' : ''}>Select</option>
+      </select>
+      <label>
+        <input type="checkbox" ${attr.required ? 'checked' : ''}
+          onchange="updateAttribute(${index}, 'required', this.checked)">
+        Required
+      </label>
+      <button type="button" class="remove-attribute" onclick="removeAttribute(${index})">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    ${attr.type === 'select' ? `
+      <div class="form-group">
+        <input type="text" class="form-control" placeholder="Options (comma-separated)"
+          value="${attr.options.join(',')}" 
+          onchange="updateAttribute(${index}, 'options', this.value.split(','))">
+      </div>
+    ` : ''}
+  `).join('');
+}
+
+function updateAttribute(index, field, value) {
+  currentAttributes[index][field] = value;
+  if (field === 'type' && value === 'select' && !currentAttributes[index].options) {
+    currentAttributes[index].options = [];
+  }
+  renderAttributes();
+}
+
+function handleSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const typeId = document.getElementById('assetTypeId').value;
+  
+  const data = {
+    name: document.getElementById('name').value,
+    description: document.getElementById('description').value,
+    attributes: currentAttributes
+  };
+
+  fetch(`/asset-types${typeId ? '/' + typeId : ''}`, {
+    method: typeId ? 'PUT' : 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(() => {
+    closeModal();
+    window.location.reload();
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function deleteAssetType(typeId) {
+  if (confirm('Are you sure you want to delete this asset type?')) {
+    fetch(`/asset-types/${typeId}`, {
+      method: 'DELETE'
+    })
+    .then(() => window.location.reload())
+    .catch(error => console.error('Error:', error));
+  }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('assetTypeModal');
+  if (event.target === modal) {
+    closeModal();
+  }
+}
+</script> 

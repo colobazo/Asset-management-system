@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= machine.modelName %> - Jubilee Asset Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Jubilee Asset Management System</h1>
+    <nav>
+      <a href="/">Dashboard</a>
+      <a href="/add">Add Machine</a>
+      <a href="/upload-excel" class="upload-excel">Upload Excel</a>
+    </nav>
+  </header>
+  
+  <main>
+    <%- contentFor('body') %>
+    <section class="machine-details">
+      <div class="back-link">
+        <a href="/" class="button secondary small">← Back to Dashboard</a>
+      </div>
+      
+      <h2><%= machine.modelName %> Details</h2>
+      
+      <div class="machine-info">
+        <% if (machine.image) { %>
+          <div class="machine-image">
+            <img src="<%= machine.image %>" alt="<%= machine.modelName %>">
+          </div>
+        <% } %>
+        
+        <div class="info-grid">
+          <div class="info-item">
+            <h3>Serial Number</h3>
+            <p><%= machine.serialNumber %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Manufacturer</h3>
+            <p><%= machine.manufacturer %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Company</h3>
+            <p><%= machine.company %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Username</h3>
+            <p><%= machine.username || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Email Address</h3>
+            <p><%= machine.emailAddress || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>New Tag Number</h3>
+            <p><%= machine.newTagNumber || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Old Tag Number</h3>
+            <p><%= machine.oldTagNumber || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Supplier</h3>
+            <p><%= machine.supplier || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Amount</h3>
+            <p><%= machine.amount ? '₹' + parseFloat(machine.amount).toLocaleString() : 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Invoice Number</h3>
+            <p><%= machine.invoiceNumber || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Former User</h3>
+            <p><%= machine.formerUser || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Purchase Date</h3>
+            <p><%= machine.purchaseDate || 'N/A' %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Location</h3>
+            <p><%= machine.location %></p>
+          </div>
+          
+          <div class="info-item">
+            <h3>Operational Status</h3>
+            <div class="status-badge" data-status="<%= machine.operationalStatus %>">
+              <span class="status-dot"></span>
+              <span class="status-text"><%= machine.operationalStatus %></span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <h3>Asset State</h3>
+            <p class="asset-state <%= machine.assetState.toLowerCase() %>">
+              <%= machine.assetState %>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <a href="/edit/<%= machine.id %>" class="button">Edit Details</a>
+        <a href="/maintenance/<%= machine.id %>" class="button secondary">Log Maintenance</a>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Asset Management System</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<section class="form-container">
+  <h2>Upload Excel File</h2>
+  
+  <div class="excel-upload-info">
+    <h3>Instructions</h3>
+    <p>Please ensure your Excel file has the following columns:</p>
+    <ul>
+      <li>Serial Number (required)</li>
+      <li>Model Name (required)</li>
+      <li>Manufacturer (required)</li>
+      <li>Company (required)</li>
+      <li>Email Address</li>
+      <li>New Tag Number</li>
+      <li>Old Tag Number</li>
+      <li>Username</li>
+      <li>Supplier</li>
+      <li>Amount</li>
+      <li>Invoice Number</li>
+      <li>Former User</li>
+      <li>Purchase Date</li>
+      <li>Location (required)</li>
+      <li>Operational Status</li>
+      <li>Asset State</li>
+    </ul>
+    
+    <div class="template-download">
+      <p>Download our template to ensure correct formatting:</p>
+      <a href="/templates/asset-template.xlsx" class="button secondary">Download Template</a>
+    </div>
+  </div>
+  
+  <form action="/upload-excel" method="POST" enctype="multipart/form-data" class="excel-upload-form">
+    <div class="form-group">
+      <label for="excelFile">Select Excel File</label>
+      <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" required>
+      <small class="form-text">Supported formats: .xlsx, .xls</small>
+    </div>
+    
+    <div class="preview-section" style="display: none;">
+      <h3>Preview</h3>
+      <div class="preview-table-container">
+        <table class="preview-table">
+          <!-- Preview content will be inserted here via JavaScript -->
+        </table>
+      </div>
+      <p class="preview-count">0 records found</p>
+    </div>
+    
+    <div class="form-actions">
+      <button type="submit" class="button primary">Upload and Process</button>
+      <a href="/" class="button secondary">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<script>
+  // Add client-side Excel preview functionality
+  document.getElementById('excelFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Show loading state
+      document.querySelector('.preview-section').style.display = 'block';
+      document.querySelector('.preview-table').innerHTML = '<tr><td>Loading preview...</td></tr>';
+      
+      const formData = new FormData();
+      formData.append('excelFile', file);
+      
+      // Send file for preview
+      fetch('/preview-excel', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        const previewTable = document.querySelector('.preview-table');
+        
+        // Create header row
+        let headerHtml = '<tr>';
+        data.headers.forEach(header => {
+          headerHtml += `<th>${header}</th>`;
+        });
+        headerHtml += '</tr>';
+        
+        // Create data rows (limit to first 5 rows for preview)
+        let rowsHtml = '';
+        data.rows.slice(0, 5).forEach(row => {
+          rowsHtml += '<tr>';
+          row.forEach(cell => {
+            rowsHtml += `<td>${cell || ''}</td>`;
+          });
+          rowsHtml += '</tr>';
+        });
+        
+        previewTable.innerHTML = headerHtml + rowsHtml;
+        document.querySelector('.preview-count').textContent = `${data.totalRows} records found`;
+      })
+      .catch(error => {
+        document.querySelector('.preview-table').innerHTML = 
+          '<tr><td>Error loading preview. Please ensure the file is in the correct format.</td></tr>';
+      });
+    }
+  });
+</script> 

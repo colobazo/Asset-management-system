@@ -1,0 +1,739 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f7fa;
+  }
+  
+  /* Global styles */
+  :root {
+    --primary-color: #c02033;
+    --primary-hover: #a01b2b;
+    --text-color: #333;
+    --light-gray: #f5f5f5;
+    --border-color: #ddd;
+  }
+  
+  header {
+    background: var(--primary-color);
+    padding: 1rem 2rem;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  nav a {
+    color: white;
+    text-decoration: none;
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  
+  nav a:hover, nav a.active {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+  
+  nav a.upload-excel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  nav a.upload-excel::before {
+    content: "��";
+    font-size: 1.2rem;
+  }
+  
+  main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+  }
+  
+  .action-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1.5rem;
+  }
+  
+  .button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+  
+  .button.small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .button.secondary {
+    background: #666;
+  }
+  
+  .button.secondary:hover {
+    background: #555;
+  }
+  
+  .button.primary {
+    background-color: #2ecc71;
+  }
+  
+  .button.primary:hover {
+    background-color: #27ae60;
+  }
+  
+  .empty-state {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .machines-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .machines-table th,
+  .machines-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ecf0f1;
+  }
+  
+  .machines-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+  
+  .status-operational {
+    color: #27ae60;
+  }
+  
+  .status-under.maintenance {
+    color: #f39c12;
+  }
+  
+  .status-repair.needed {
+    color: #e74c3c;
+  }
+  
+  .status-decommissioned {
+    color: #7f8c8d;
+  }
+  
+  .form-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(192, 32, 51, 0.1);
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 1rem;
+    color: #7f8c8d;
+    font-size: 0.875rem;
+  }
+
+  /* Add these styles to your existing CSS file */
+
+.machine-details {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .back-link {
+    margin-bottom: 1rem;
+  }
+  
+  .machine-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .machine-image {
+    flex: 0 0 300px;
+  }
+  
+  .machine-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .info-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .info-item h3 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+  }
+  
+  .info-item p {
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+
+  /* Add to your existing style.css file */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group.half {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  
+  .form-text {
+    display: block;
+    font-size: 0.75rem;
+    color: #7f8c8d;
+    margin-top: 0.25rem;
+  }
+
+  /* Add these styles to your existing CSS file */
+.info-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .info-item {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .info-item h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  
+  .info-item p {
+    font-size: 1rem;
+    font-weight: 500;
+    word-break: break-word;
+  }
+  
+  @media (max-width: 768px) {
+    .machine-info {
+      flex-direction: column;
+    }
+    
+    .machine-image {
+      flex: 0 0 100%;
+      margin-bottom: 1.5rem;
+    }
+    
+    .info-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+  }
+
+  /* Basic styles for the search form */
+.search-form {
+    margin: 1em 0;
+    text-align: center;
+  }
+  
+  .search-form input[type="text"] {
+    width: 50%;
+    padding: 0.5em;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .search-form button {
+    padding: 0.5em 1em;
+    font-size: 1em;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    margin-left: 0.5em;
+    cursor: pointer;
+  }
+  
+  .search-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Update the action bar to space the elements apart */
+.action-bar {
+    display: flex;
+    justify-content: space-between; /* This pushes the two children to opposite ends */
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Optional: If you want to further style the add new machine button */
+  /* In a flex container with space-between, this button will naturally be on the left */
+  /* You can add custom styles here if desired */
+  
+  /* Adjust the search form to align on the right */
+  .search-form {
+    text-align: right;
+    /* Remove the previous centering margin if present */
+    margin: 0;
+  }
+  
+  .search-form input[type="text"] {
+    width: 300px; /* Adjust width as needed */
+    padding: 0.5em;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .search-form button {
+    padding: 0.5em 1em;
+    font-size: 1em;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    margin-left: 0.5em;
+    cursor: pointer;
+  }
+  
+  .search-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Company Cards Styles */
+.company-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.company-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.company-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.company-card:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.company-card.selected {
+  border: 2px solid #3498db;
+}
+
+.company-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.asset-count {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.percentage-change {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.percentage-change.positive {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
+.percentage-change.negative {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .company-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .company-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Operational Status Badge Styles */
+.status-badge-select {
+  margin-bottom: 0.5rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  margin-top: 0.5rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.status-badge[data-status="Operational"] {
+  background-color: #28a745;
+}
+
+.status-badge[data-status="Operational"] .status-dot {
+  background-color: #27ae60;
+}
+
+.status-badge[data-status="Under Maintenance"] {
+  background-color: var(--primary-color);
+}
+
+.status-badge[data-status="Under Maintenance"] .status-dot {
+  background-color: #f39c12;
+}
+
+.status-badge[data-status="Repair Needed"] {
+  background-color: #ffc107;
+}
+
+.status-badge[data-status="Repair Needed"] .status-dot {
+  background-color: #e74c3c;
+}
+
+.status-badge[data-status="Decommissioned"] {
+  background-color: #6c757d;
+}
+
+.status-badge[data-status="Decommissioned"] .status-dot {
+  background-color: #95a5a6;
+}
+
+/* Asset State Selector Styles */
+.state-selector {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.state-selector option {
+  padding: 0.5rem;
+}
+
+.state-selector option[value="Active"] {
+  color: #27ae60;
+}
+
+.state-selector option[value="Exit"] {
+  color: #e74c3c;
+}
+
+.state-selector option[value="Workaround"] {
+  color: #f39c12;
+}
+
+.state-selector option[value="Recovered"] {
+  color: #3498db;
+}
+
+/* Asset State Display Styles */
+.asset-state {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.asset-state.active {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
+.asset-state.exit {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+.asset-state.workaround {
+  background-color: rgba(241, 196, 15, 0.1);
+  color: #f39c12;
+}
+
+.asset-state.recovered {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+}
+
+/* Excel Upload Page Styles */
+.excel-upload-info {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.excel-upload-info h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.excel-upload-info ul {
+  list-style-type: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.excel-upload-info li {
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.excel-upload-info li::before {
+  content: "•";
+  color: #3498db;
+  margin-right: 0.5rem;
+}
+
+.template-download {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.excel-upload-form {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.preview-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.preview-table-container {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.preview-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.preview-count {
+  color: #6c757d;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.company-card.total-machines {
+  background: linear-gradient(to right, #4a90e2, #357abd);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.company-card.total-machines:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.company-card.total-machines:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.company-card.total-machines.selected {
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #4a90e2;
+}
+
+.company-card.total-machines .company-name {
+  color: white;
+  opacity: 0.9;
+}
+
+.company-card.total-machines .total-label {
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 0.5em;
+}
+
+.company-card.total-machines .asset-count {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin: 0.5em 0;
+  color: white;
+}
+
+/* User management styles */
+.role-badge.admin {
+  background: var(--primary-color);
+}
+
+.add-user-btn {
+  background: var(--primary-color);
+}
+
+.add-user-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* Error and success messages */
+.error-message {
+  color: var(--primary-color);
+}
+
+/* Upload styles */
+.upload-excel {
+  border: 2px dashed var(--primary-color);
+}
+
+.upload-excel:hover {
+  background: rgba(192, 32, 51, 0.05);
+}
+  

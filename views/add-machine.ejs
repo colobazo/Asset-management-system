@@ -1,0 +1,204 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <a href="javascript:history.back()" class="text-decoration-none text-dark">
+                    <i class="fas fa-arrow-left me-2"></i>
+                </a>
+                Add New Asset
+            </h2>
+        </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+    <% } %>
+
+    <div class="card">
+        <div class="card-body">
+            <form action="/add" method="POST" enctype="multipart/form-data">
+                <!-- Required Fields -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">Required Information</h5>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Serial Number *</label>
+                        <input type="text" name="serialNumber" class="form-control" required 
+                            value="<%= typeof formData !== 'undefined' ? formData.serialNumber : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Model Name *</label>
+                        <input type="text" name="modelName" class="form-control" required
+                            value="<%= typeof formData !== 'undefined' ? formData.modelName : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Manufacturer *</label>
+                        <input type="text" name="manufacturer" class="form-control" required
+                            value="<%= typeof formData !== 'undefined' ? formData.manufacturer : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Company *</label>
+                        <select name="company" class="form-control" required>
+                            <option value="">Select Company</option>
+                            <option value="Jubilee Health" <%= typeof formData !== 'undefined' && formData.company === 'Jubilee Health' ? 'selected' : '' %>>Jubilee Health</option>
+                            <option value="Jubilee Life" <%= typeof formData !== 'undefined' && formData.company === 'Jubilee Life' ? 'selected' : '' %>>Jubilee Life</option>
+                            <option value="JAML" <%= typeof formData !== 'undefined' && formData.company === 'JAML' ? 'selected' : '' %>>JAML</option>
+                            <option value="Jubilee Holdings" <%= typeof formData !== 'undefined' && formData.company === 'Jubilee Holdings' ? 'selected' : '' %>>Jubilee Holdings</option>
+                            <option value="Jubilee Shared Services" <%= typeof formData !== 'undefined' && formData.company === 'Jubilee Shared Services' ? 'selected' : '' %>>Jubilee Shared Services</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Location *</label>
+                        <input type="text" name="location" class="form-control" required
+                            value="<%= typeof formData !== 'undefined' ? formData.location : '' %>">
+                    </div>
+                </div>
+
+                <!-- Asset Type Section -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">Asset Type Details (Optional)</h5>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Asset Type</label>
+                        <select name="assetType" class="form-control" id="assetTypeSelect">
+                            <option value="">Select Asset Type</option>
+                            <% assetTypes.forEach(function(type) { %>
+                                <option value="<%= type._id %>" 
+                                    <%= typeof formData !== 'undefined' && formData.assetType === type._id ? 'selected' : '' %>>
+                                    <%= type.name %>
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dynamic Attributes Section -->
+                <div id="dynamicAttributes" class="row mb-4"></div>
+
+                <!-- Additional Information -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">Additional Information</h5>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">New Tag Number</label>
+                        <input type="text" name="newTagNumber" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.newTagNumber : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Old Tag Number</label>
+                        <input type="text" name="oldTagNumber" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.oldTagNumber : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.username : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="emailAddress" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.emailAddress : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Purchase Date</label>
+                        <input type="date" name="purchaseDate" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.purchaseDate : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Supplier</label>
+                        <input type="text" name="supplier" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.supplier : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" name="amount" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.amount : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Invoice Number</label>
+                        <input type="text" name="invoiceNumber" class="form-control"
+                            value="<%= typeof formData !== 'undefined' ? formData.invoiceNumber : '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Operational Status</label>
+                        <select name="operationalStatus" class="form-control">
+                            <option value="Operational" <%= typeof formData !== 'undefined' && formData.operationalStatus === 'Operational' ? 'selected' : '' %>>Operational</option>
+                            <option value="Under Maintenance" <%= typeof formData !== 'undefined' && formData.operationalStatus === 'Under Maintenance' ? 'selected' : '' %>>Under Maintenance</option>
+                            <option value="Repair Needed" <%= typeof formData !== 'undefined' && formData.operationalStatus === 'Repair Needed' ? 'selected' : '' %>>Repair Needed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Asset Image</label>
+                        <input type="file" name="machineImage" class="form-control" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Add Asset</button>
+                        <a href="javascript:history.back()" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('assetTypeSelect').addEventListener('change', async function() {
+    const assetTypeId = this.value;
+    const dynamicAttributesDiv = document.getElementById('dynamicAttributes');
+    dynamicAttributesDiv.innerHTML = '';
+
+    if (!assetTypeId) return;
+
+    try {
+        const response = await fetch(`/asset-types/${assetTypeId}`);
+        const assetType = await response.json();
+
+        if (assetType.attributes) {
+            assetType.attributes.forEach(attr => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-3';
+
+                const label = document.createElement('label');
+                label.className = 'form-label';
+                label.textContent = attr.name;
+                if (!attr.required) label.textContent += ' (Optional)';
+
+                let input;
+                if (attr.type === 'select') {
+                    input = document.createElement('select');
+                    attr.options.forEach(option => {
+                        const opt = document.createElement('option');
+                        opt.value = option;
+                        opt.textContent = option;
+                        input.appendChild(opt);
+                    });
+                } else if (attr.type === 'date') {
+                    input = document.createElement('input');
+                    input.type = 'date';
+                } else {
+                    input = document.createElement('input');
+                    input.type = attr.type;
+                }
+
+                input.className = 'form-control';
+                input.name = `dynamicAttributes[${attr.name}]`;
+                input.required = false; // Make all dynamic attributes optional
+
+                col.appendChild(label);
+                col.appendChild(input);
+                dynamicAttributesDiv.appendChild(col);
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching asset type:', error);
+    }
+});
+</script>

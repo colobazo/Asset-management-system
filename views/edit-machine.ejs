@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Machine - Jubilee Asset Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- contentFor('body') %>
+  <section class="form-container">
+    <div class="back-link">
+      <a href="/view/<%= machine._id %>" class="button secondary small">← Back to Machine Details</a>
+    </div>
+
+    <h2>Edit Machine: <%= machine.modelName %></h2>
+    
+    <form action="/edit/<%= machine._id %>" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="serialNumber">Serial Number</label>
+        <input type="text" id="serialNumber" name="serialNumber" value="<%= machine.serialNumber %>" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="modelName">Model Name</label>
+        <input type="text" id="modelName" name="modelName" value="<%= machine.modelName %>" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="manufacturer">Manufacturer</label>
+        <input type="text" id="manufacturer" name="manufacturer" value="<%= machine.manufacturer %>" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="company">Company</label>
+        <select id="company" name="company" required>
+          <option value="">-- Select Company --</option>
+          <option value="Jubilee Life" <%= machine.company === 'Jubilee Life' ? 'selected' : '' %>>Jubilee Life</option>
+          <option value="Jubilee Health" <%= machine.company === 'Jubilee Health' ? 'selected' : '' %>>Jubilee Health</option>
+          <option value="Jubilee Holdings" <%= machine.company === 'Jubilee Holdings' ? 'selected' : '' %>>Jubilee Holdings</option>
+          <option value="JAML" <%= machine.company === 'JAML' ? 'selected' : '' %>>JAML</option>
+          <option value="Jubilee Shared Services" <%= machine.company === 'Jubilee Shared Services' ? 'selected' : '' %>>Jubilee Shared Services</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="emailAddress">Email Address</label>
+        <input type="email" id="emailAddress" name="emailAddress" value="<%= machine.emailAddress || '' %>" placeholder="user@example.com">
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="newTagNumber">New Tag Number</label>
+          <input type="text" id="newTagNumber" name="newTagNumber" value="<%= machine.newTagNumber || '' %>">
+        </div>
+        
+        <div class="form-group half">
+          <label for="oldTagNumber">Old Tag Number</label>
+          <input type="text" id="oldTagNumber" name="oldTagNumber" value="<%= machine.oldTagNumber || '' %>">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="<%= machine.username || '' %>">
+      </div>
+      
+      <div class="form-group">
+        <label for="supplier">Supplier</label>
+        <input type="text" id="supplier" name="supplier" value="<%= machine.supplier || '' %>">
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="amount">Amount</label>
+          <input type="number" id="amount" name="amount" step="0.01" min="0" value="<%= machine.amount || '' %>">
+        </div>
+        
+        <div class="form-group half">
+          <label for="invoiceNumber">Invoice Number</label>
+          <input type="text" id="invoiceNumber" name="invoiceNumber" value="<%= machine.invoiceNumber || '' %>">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="formerUser">Former User (if applicable)</label>
+        <input type="text" id="formerUser" name="formerUser" value="<%= machine.formerUser || '' %>">
+      </div>
+      
+      <div class="form-group">
+        <label for="purchaseDate">Purchase Date</label>
+        <input type="date" id="purchaseDate" name="purchaseDate" value="<%= machine.purchaseDate ? machine.purchaseDate.toISOString().split('T')[0] : '' %>">
+      </div>
+      
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" value="<%= machine.location %>" required>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="operationalStatus">Operational Status</label>
+          <select id="operationalStatus" name="operationalStatus" class="status-badge-select">
+            <option value="Operational" <%= machine.operationalStatus === 'Operational' ? 'selected' : '' %>>Operational</option>
+            <option value="Under Maintenance" <%= machine.operationalStatus === 'Under Maintenance' ? 'selected' : '' %>>Under Maintenance</option>
+            <option value="Repair Needed" <%= machine.operationalStatus === 'Repair Needed' ? 'selected' : '' %>>Repair Needed</option>
+            <option value="Decommissioned" <%= machine.operationalStatus === 'Decommissioned' ? 'selected' : '' %>>Decommissioned</option>
+          </select>
+          <div class="status-badge" data-status="<%= machine.operationalStatus %>">
+            <span class="status-dot"></span>
+            <span class="status-text"><%= machine.operationalStatus %></span>
+          </div>
+        </div>
+        
+        <div class="form-group half">
+          <label for="assetState">Asset State</label>
+          <select id="assetState" name="assetState" class="state-selector">
+            <option value="Active" <%= machine.assetState === 'Active' ? 'selected' : '' %>>Active</option>
+            <option value="Exit" <%= machine.assetState === 'Exit' ? 'selected' : '' %>>Exit</option>
+            <option value="Workaround" <%= machine.assetState === 'Workaround' ? 'selected' : '' %>>Workaround</option>
+            <option value="Recovered" <%= machine.assetState === 'Recovered' ? 'selected' : '' %>>Recovered</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="machineImage">Machine Image</label>
+        <% if (machine.imagePath) { %>
+          <div class="current-image">
+            <img src="<%= machine.imagePath %>" alt="Current machine image" style="max-width: 200px;">
+            <p>Current image</p>
+          </div>
+        <% } %>
+        <input type="file" id="machineImage" name="machineImage" accept="image/*">
+        <small class="form-text">Upload a new image to replace the current one (JPG, PNG, GIF)</small>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="button primary">Save Changes</button>
+        <a href="/view/<%= machine._id %>" class="button secondary">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    // Update operational status badge when selection changes
+    const operationalStatusSelect = document.getElementById('operationalStatus');
+    const statusBadge = document.querySelector('.status-badge');
+    const statusText = statusBadge.querySelector('.status-text');
+
+    operationalStatusSelect.addEventListener('change', function() {
+      const selectedStatus = this.value;
+      statusBadge.dataset.status = selectedStatus;
+      statusText.textContent = selectedStatus;
+    });
+  </script>
+</body>
+</html> 

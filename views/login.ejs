@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Jubilee Asset Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: #c02033;
+      min-height: 100vh;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #333;
+    }
+
+    .page-container {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      min-height: 100vh;
+    }
+
+    .left-side {
+      padding: 4rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .side-text {
+      color: white;
+      font-size: 5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0;
+      max-width: 800px;
+    }
+
+    .login-container {
+      background: white;
+      padding: 3rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 85%;
+      margin: auto;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 0;
+      border: none;
+      border-bottom: 1px solid #ddd;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+      background: transparent;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-bottom-color: #c02033;
+    }
+
+    .form-group label {
+      position: absolute;
+      left: 0;
+      top: 0.75rem;
+      color: #999;
+      transition: all 0.3s;
+      pointer-events: none;
+      font-size: 0.95rem;
+    }
+
+    .form-group input:focus + label,
+    .form-group input:not(:placeholder-shown) + label {
+      top: -0.5rem;
+      font-size: 0.8rem;
+      color: #c02033;
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0.5rem 0 1.5rem;
+    }
+
+    .forgot-password {
+      color: #666;
+      text-decoration: none;
+      font-size: 0.8rem;
+      transition: color 0.3s;
+    }
+
+    .forgot-password:hover {
+      color: #c02033;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.875rem;
+      background: #c02033;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #a01b2b;
+      transform: translateY(-2px);
+    }
+
+    .error-message {
+      color: #c02033;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="left-side">
+      <h1 class="side-text">Jubilee Asset Management System</h1>
+    </div>
+    
+    <div class="login-container">
+      <% if (error) { %>
+        <div class="error-message">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <form class="login-form" action="/login" method="POST">
+        <div class="form-group">
+          <input type="text" id="username" name="username" required placeholder=" ">
+          <label for="username">Email</label>
+        </div>
+
+        <div class="form-group">
+          <input type="password" id="password" name="password" required placeholder=" ">
+          <label for="password">Password</label>
+        </div>
+
+        <div class="form-options">
+          <a href="/forgot-password" class="forgot-password">Forget Password?</a>
+        </div>
+
+        <button type="submit">LOGIN</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html> 

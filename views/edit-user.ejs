@@ -1,0 +1,140 @@
+<style>
+  .form-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+  }
+
+  .form-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+
+  .submit-btn {
+    background: #28a745;
+    color: white;
+  }
+
+  .submit-btn:hover {
+    background: #218838;
+  }
+
+  .cancel-btn {
+    background: #6c757d;
+    color: white;
+  }
+
+  .cancel-btn:hover {
+    background: #5a6268;
+  }
+
+  .password-info {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+  }
+</style>
+
+<div class="form-container">
+  <h2>Edit User</h2>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="error-message">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <form action="/users/edit/<%= user._id %>" method="POST">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" value="<%= user.username %>" required pattern="[A-Za-z0-9\-_]+" title="Only letters, numbers, hyphens, and underscores are allowed">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" minlength="8">
+      <div class="password-info">Leave blank to keep current password</div>
+    </div>
+
+    <div class="form-group">
+      <label for="fullName">Full Name</label>
+      <input type="text" id="fullName" name="fullName" value="<%= user.fullName %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="<%= user.email %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="company">Company</label>
+      <select id="company" name="company" required>
+        <option value="">-- Select Company --</option>
+        <option value="Jubilee Life" <%= user.company === 'Jubilee Life' ? 'selected' : '' %>>Jubilee Life</option>
+        <option value="Jubilee Health" <%= user.company === 'Jubilee Health' ? 'selected' : '' %>>Jubilee Health</option>
+        <option value="Jubilee Holdings" <%= user.company === 'Jubilee Holdings' ? 'selected' : '' %>>Jubilee Holdings</option>
+        <option value="JAML" <%= user.company === 'JAML' ? 'selected' : '' %>>JAML</option>
+        <option value="Jubilee Shared Services" <%= user.company === 'Jubilee Shared Services' ? 'selected' : '' %>>Jubilee Shared Services</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="role">Role</label>
+      <select id="role" name="role" required>
+        <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
+        <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="submit-btn">Update User</button>
+      <a href="/users" class="cancel-btn" style="text-decoration: none;">Cancel</a>
+    </div>
+  </form>
+</div> 
