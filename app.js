@@ -17,7 +17,7 @@ const User = require('./models/User');
 const excel = require('exceljs');
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 // Retrieve MongoDB URI from environment variables or use a default for local development
 const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/assetManagement';
@@ -107,9 +107,57 @@ app.use((req, res, next) => {
   next();
 });
 
-// -----------------------------
-// Routes using MongoDB (Machine model)
-// -----------------------------
+// Login routes (unprotected)
+app.get('/login', isLoggedIn, (req, res) => {
+  res.render('login', { error: null, layout: false });
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+
+    if (!user || !(await user.comparePassword(password))) {
+      return res.render('login', { error: 'Invalid username or password', layout: false });
+    }
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Create JWT token with user role
+    const token = jwt.sign(
+      { 
+        userId: user._id,
+        username: user.username,
+        fullName: user.fullName,
+        role: user.role 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
+    res.redirect('/');
+  } catch (error) {
+    console.error('Login error:', error);
+    res.render('login', { error: 'An error occurred during login', layout: false });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.redirect('/login');
+});
+
+// Protect all routes after this middleware
+app.use(authenticateToken);
 
 // Home route - fetch and display all machines from MongoDB
 app.get('/', async (req, res) => {
@@ -245,63 +293,21 @@ app.get('/add', async (req, res) => {
   }
 });
 
-// Login page route
-app.get('/login', isLoggedIn, (req, res) => {
-  res.render('login', { error: null, layout: false });
-});
-
-// Login POST route
-app.post('/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username });
-
-    if (!user || !(await user.comparePassword(password))) {
-      return res.render('login', { error: 'Invalid username or password', layout: false });
-    }
-
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
-
-    // Create JWT token with user role
-    const token = jwt.sign(
-      { 
-        userId: user._id,
-        username: user.username,
-        fullName: user.fullName,
-        role: user.role 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // Set cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
-
-    res.redirect('/');
-  } catch (error) {
-    console.error('Login error:', error);
-    res.render('login', { error: 'An error occurred during login', layout: false });
-  }
-});
-
-// Logout route
-app.get('/logout', (req, res) => {
-  res.clearCookie('token');
-  res.redirect('/login');
-});
-
-// Protect all routes after this middleware
-app.use(authenticateToken);
-
 // POST route to add a new machine using the Machine model
 app.post('/add', isAdmin, upload.single('machineImage'), async (req, res) => {
   try {
+    // Convert dynamicAttributes object to Map
+    const dynamicAttributesMap = new Map();
+    if (req.body.dynamicAttributes) {
+      const attributes = typeof req.body.dynamicAttributes === 'string' 
+        ? JSON.parse(req.body.dynamicAttributes) 
+        : req.body.dynamicAttributes;
+      
+      Object.entries(attributes).forEach(([key, value]) => {
+        dynamicAttributesMap.set(key, value);
+      });
+    }
+
     const newMachine = new Machine({
       assetType: req.body.assetType || null,
       serialNumber: req.body.serialNumber,
@@ -321,23 +327,40 @@ app.post('/add', isAdmin, upload.single('machineImage'), async (req, res) => {
       operationalStatus: req.body.operationalStatus || 'Operational',
       assetState: req.body.assetState || 'Active',
       imagePath: req.file ? '/uploads/' + req.file.filename : null,
-      dynamicAttributes: req.body.dynamicAttributes || {}
+      dynamicAttributes: dynamicAttributesMap
     });
 
     await newMachine.save();
-
-    // Redirect to the company page with success message
-    const companySlug = req.body.company.toLowerCase().replace(/\s+/g, '-');
-    const successMessage = encodeURIComponent('Asset added successfully');
-    res.redirect(`/company/${companySlug}?success=${successMessage}`);
-  } catch (err) {
-    console.error("Error saving machine:", err);
-    const assetTypes = await AssetType.find().sort('name');
-    res.render('add-machine', { 
-      assetTypes,
-      error: err.message,
-      activeTab: 'add',
-      formData: req.body
+    
+    // Set content type to JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.json({ success: true, message: 'Asset added successfully' });
+  } catch (error) {
+    console.error('Error saving machine:', error);
+    
+    // Set content type to JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const keyPattern = error.keyPattern;
+      let errorMessage = '';
+      
+      if (keyPattern.serialNumber) {
+        errorMessage = 'This Serial Number already exists in the system. Please use a different Serial Number.';
+      } else if (keyPattern.newTagNumber) {
+        errorMessage = 'This Tag Number already exists in the system. Please use a different Tag Number.';
+      } else {
+        errorMessage = 'A duplicate record was found. Please check your input and try again.';
+      }
+      
+      return res.status(400).json({ error: errorMessage });
+    }
+    
+    // Handle other errors
+    res.status(500).json({ 
+      error: 'An error occurred while saving the asset. Please try again.',
+      details: error.message
     });
   }
 });
@@ -495,8 +518,8 @@ app.get('/company/:companySlug', async (req, res) => {
       'jubilee-health': 'Jubilee Health',
       'jubilee-life': 'Jubilee Life',
       'jaml': 'JAML',
-      'holdings': 'Jubilee Holdings',
-      'shared-services': 'Jubilee Shared Services'
+      'jubilee-holdings': 'Jubilee Holdings',
+      'jubilee-shared-services': 'Jubilee Shared Services'
     };
 
     const companyName = companyMap[req.params.companySlug];
@@ -676,7 +699,12 @@ app.post('/upload-excel', upload.single('excelFile'), async (req, res) => {
 app.get('/check-serial/:serialNumber', async (req, res) => {
   try {
     const serialNumber = req.params.serialNumber;
-    const machine = await Machine.findOne({ serialNumber: { $regex: new RegExp('^' + serialNumber + '$', 'i') } });
+    const machine = await Machine.findOne({ 
+      $or: [
+        { serialNumber: { $regex: new RegExp('^' + serialNumber + '$', 'i') } },
+        { newTagNumber: { $regex: new RegExp('^' + serialNumber + '$', 'i') } }
+      ]
+    });
     res.json({ exists: !!machine });
   } catch (err) {
     console.error("Error checking serial number:", err);

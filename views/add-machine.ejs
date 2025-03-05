@@ -150,6 +150,58 @@
 </div>
 
 <script>
+// Add validation functions
+async function checkSerialNumber(serialNumber) {
+    try {
+        const response = await fetch(`/check-serial/${serialNumber}`);
+        const data = await response.json();
+        return data.exists;
+    } catch (error) {
+        console.error('Error checking serial number:', error);
+        return false;
+    }
+}
+
+async function validateForm() {
+    const serialNumber = document.querySelector('input[name="serialNumber"]').value;
+    const newTagNumber = document.querySelector('input[name="newTagNumber"]').value;
+    let isValid = true;
+    let errorMessage = '';
+
+    // Check serial number if provided
+    if (serialNumber) {
+        const exists = await checkSerialNumber(serialNumber);
+        if (exists) {
+            errorMessage = 'This Serial Number already exists in the system. Please use a different Serial Number.';
+            isValid = false;
+        }
+    }
+
+    // Check tag number if provided
+    if (newTagNumber) {
+        const exists = await checkSerialNumber(newTagNumber);
+        if (exists) {
+            errorMessage = errorMessage ? errorMessage + '\n' : '';
+            errorMessage += 'This Tag Number already exists in the system. Please use a different Tag Number.';
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        // Create or update error alert
+        let errorAlert = document.querySelector('.alert-danger');
+        if (!errorAlert) {
+            errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger';
+            document.querySelector('.card-body').insertBefore(errorAlert, document.querySelector('form'));
+        }
+        errorAlert.textContent = errorMessage;
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    return isValid;
+}
+
 document.getElementById('assetTypeSelect').addEventListener('change', async function() {
     const assetTypeId = this.value;
     const dynamicAttributesDiv = document.getElementById('dynamicAttributes');
@@ -190,7 +242,7 @@ document.getElementById('assetTypeSelect').addEventListener('change', async func
 
                 input.className = 'form-control';
                 input.name = `dynamicAttributes[${attr.name}]`;
-                input.required = false; // Make all dynamic attributes optional
+                input.required = attr.required || false;
 
                 col.appendChild(label);
                 col.appendChild(input);
@@ -199,6 +251,95 @@ document.getElementById('assetTypeSelect').addEventListener('change', async func
         }
     } catch (error) {
         console.error('Error fetching asset type:', error);
+    }
+});
+
+// Add form submission handler
+document.querySelector('form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validate form before submission
+    if (!await validateForm()) {
+        return;
+    }
+    
+    // Create FormData object
+    const formData = new FormData(this);
+    
+    // Collect dynamic attributes
+    const dynamicAttributes = {};
+    const dynamicInputs = document.querySelectorAll('[name^="dynamicAttributes["]');
+    dynamicInputs.forEach(input => {
+        const name = input.name.match(/\[(.*?)\]/)[1];
+        dynamicAttributes[name] = input.value;
+    });
+    
+    // Add dynamic attributes as JSON string
+    formData.append('dynamicAttributes', JSON.stringify(dynamicAttributes));
+    
+    try {
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'An error occurred while saving the asset');
+        }
+        
+        // Redirect on success
+        window.location.href = '/company?success=Asset added successfully';
+    } catch (error) {
+        console.error('Error:', error);
+        
+        // Create or update error alert
+        let errorAlert = document.querySelector('.alert-danger');
+        if (!errorAlert) {
+            errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger';
+            document.querySelector('.card-body').insertBefore(errorAlert, document.querySelector('form'));
+        }
+        
+        // Set error message
+        errorAlert.textContent = error.message;
+        
+        // Scroll to error message
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+
+// Add real-time validation for serial number and tag number
+document.querySelector('input[name="serialNumber"]').addEventListener('blur', async function() {
+    if (this.value) {
+        const exists = await checkSerialNumber(this.value);
+        if (exists) {
+            let errorAlert = document.querySelector('.alert-danger');
+            if (!errorAlert) {
+                errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger';
+                document.querySelector('.card-body').insertBefore(errorAlert, document.querySelector('form'));
+            }
+            errorAlert.textContent = 'This Serial Number already exists in the system. Please use a different Serial Number.';
+            errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+});
+
+document.querySelector('input[name="newTagNumber"]').addEventListener('blur', async function() {
+    if (this.value) {
+        const exists = await checkSerialNumber(this.value);
+        if (exists) {
+            let errorAlert = document.querySelector('.alert-danger');
+            if (!errorAlert) {
+                errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger';
+                document.querySelector('.card-body').insertBefore(errorAlert, document.querySelector('form'));
+            }
+            errorAlert.textContent = 'This Tag Number already exists in the system. Please use a different Tag Number.';
+            errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 });
 </script>

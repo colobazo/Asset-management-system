@@ -166,7 +166,77 @@
     cursor: pointer;
     padding: 0.5rem;
   }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 4px;
+    color: white;
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  .toast.success {
+    background-color: #28a745;
+  }
+
+  .toast.error {
+    background-color: #dc3545;
+  }
+
+  .loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+  }
+
+  .loading.show {
+    display: flex;
+  }
+
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .form-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+  }
+
+  .form-control.error {
+    border-color: #dc3545;
+  }
 </style>
+
+<div class="loading">
+  <div class="loading-spinner"></div>
+</div>
 
 <div class="asset-types-container">
   <div class="asset-type-header">
@@ -216,10 +286,12 @@
       <div class="form-group">
         <label for="name">Name *</label>
         <input type="text" id="name" name="name" class="form-control" required>
+        <div class="form-error"></div>
       </div>
       <div class="form-group">
         <label for="description">Description</label>
         <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+        <div class="form-error"></div>
       </div>
       <div class="attributes-container">
         <h4>Attributes</h4>
@@ -236,8 +308,46 @@
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
 let currentAttributes = [];
+
+function showLoading() {
+  document.querySelector('.loading').classList.add('show');
+}
+
+function hideLoading() {
+  document.querySelector('.loading').classList.remove('show');
+}
+
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast ${type}`;
+  toast.classList.add('show');
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+
+function showError(element, message) {
+  const errorDiv = element.nextElementSibling;
+  if (errorDiv && errorDiv.classList.contains('form-error')) {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    element.classList.add('error');
+  }
+}
+
+function clearError(element) {
+  const errorDiv = element.nextElementSibling;
+  if (errorDiv && errorDiv.classList.contains('form-error')) {
+    errorDiv.style.display = 'none';
+    element.classList.remove('error');
+  }
+}
 
 function openModal(typeId = null) {
   const modal = document.getElementById('assetTypeModal');
@@ -246,15 +356,25 @@ function openModal(typeId = null) {
   
   if (typeId) {
     title.textContent = 'Edit Asset Type';
-    // Fetch asset type data and populate form
+    showLoading();
     fetch(`/asset-types/${typeId}`)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch asset type');
+        }
+        return response.json();
+      })
       .then(data => {
         document.getElementById('assetTypeId').value = data._id;
         document.getElementById('name').value = data.name;
         document.getElementById('description').value = data.description;
         currentAttributes = data.attributes;
         renderAttributes();
+        hideLoading();
+      })
+      .catch(error => {
+        hideLoading();
+        showToast(error.message, 'error');
       });
   } else {
     title.textContent = 'Add Asset Type';
@@ -318,11 +438,15 @@ function renderAttributes() {
 }
 
 function updateAttribute(index, field, value) {
-  currentAttributes[index][field] = value;
-  if (field === 'type' && value === 'select' && !currentAttributes[index].options) {
-    currentAttributes[index].options = [];
+  try {
+    currentAttributes[index][field] = value;
+    if (field === 'type' && value === 'select' && !currentAttributes[index].options) {
+      currentAttributes[index].options = [];
+    }
+    renderAttributes();
+  } catch (error) {
+    showToast('Error updating attribute', 'error');
   }
-  renderAttributes();
 }
 
 function handleSubmit(event) {
@@ -330,12 +454,38 @@ function handleSubmit(event) {
   const form = event.target;
   const typeId = document.getElementById('assetTypeId').value;
   
+  // Validate form
+  const nameInput = document.getElementById('name');
+  if (!nameInput.value.trim()) {
+    showError(nameInput, 'Name is required');
+    return;
+  }
+  clearError(nameInput);
+
+  // Validate attributes
+  const hasInvalidAttributes = currentAttributes.some(attr => {
+    if (!attr.name.trim()) {
+      showToast('All attributes must have a name', 'error');
+      return true;
+    }
+    if (attr.type === 'select' && (!attr.options || attr.options.length === 0)) {
+      showToast('Select type attributes must have options', 'error');
+      return true;
+    }
+    return false;
+  });
+
+  if (hasInvalidAttributes) {
+    return;
+  }
+  
   const data = {
-    name: document.getElementById('name').value,
-    description: document.getElementById('description').value,
+    name: nameInput.value.trim(),
+    description: document.getElementById('description').value.trim(),
     attributes: currentAttributes
   };
 
+  showLoading();
   fetch(`/asset-types${typeId ? '/' + typeId : ''}`, {
     method: typeId ? 'PUT' : 'POST',
     headers: {
@@ -343,22 +493,50 @@ function handleSubmit(event) {
     },
     body: JSON.stringify(data)
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to save asset type');
+    }
+    return response.json();
+  })
   .then(() => {
+    hideLoading();
+    showToast(`Asset type ${typeId ? 'updated' : 'created'} successfully`);
     closeModal();
     window.location.reload();
   })
-  .catch(error => console.error('Error:', error));
+  .catch(error => {
+    hideLoading();
+    showToast(error.message, 'error');
+  });
 }
 
 function deleteAssetType(typeId) {
   if (confirm('Are you sure you want to delete this asset type?')) {
+    showLoading();
     fetch(`/asset-types/${typeId}`, {
       method: 'DELETE'
     })
-    .then(() => window.location.reload())
-    .catch(error => console.error('Error:', error));
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to delete asset type');
+      }
+      return response.json();
+    })
+    .then(() => {
+      hideLoading();
+      showToast('Asset type deleted successfully');
+      window.location.reload();
+    })
+    .catch(error => {
+      hideLoading();
+      showToast(error.message, 'error');
+    });
   }
+}
+
+function editAssetType(typeId) {
+  openModal(typeId);
 }
 
 // Close modal when clicking outside
