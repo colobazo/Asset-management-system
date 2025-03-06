@@ -631,53 +631,155 @@ app.post('/preview-excel', upload.single('excelFile'), (req, res) => {
 app.post('/upload-excel', upload.single('excelFile'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).send('No file uploaded');
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const workbook = XLSX.readFile(req.file.path);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
-
+    
+    // Read the Excel file with raw data first
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    // Get headers from first row
+    const headers = rawData[0];
+    
+    // Log headers for debugging
+    console.log('Excel Headers:', headers);
+    
     // Process each row and create machine records
     const results = {
       success: 0,
       errors: []
     };
 
-    for (const row of data) {
+    // Start from row 1 (skip header row)
+    for (let i = 1; i < rawData.length; i++) {
+      const row = rawData[i];
+      
       try {
+        // Skip empty rows
+        if (!row || !row[0]) continue;
+
+        // Log row data for debugging
+        console.log(`Processing Row ${i + 1}:`, row);
+
+        // Create machine data object by mapping headers to values
         const machineData = {
-          serialNumber: row['Serial Number'],
-          modelName: row['Model Name'],
-          manufacturer: row['Manufacturer'],
-          company: row['Company'],
-          emailAddress: row['Email Address'],
-          newTagNumber: row['New Tag Number'],
-          oldTagNumber: row['Old Tag Number'],
-          username: row['Username'],
-          supplier: row['Supplier'],
-          amount: row['Amount'],
-          invoiceNumber: row['Invoice Number'],
-          formerUser: row['Former User'],
-          purchaseDate: row['Purchase Date'],
-          location: row['Location'],
-          operationalStatus: row['Operational Status'] || 'Operational',
-          assetState: row['Asset State'] || 'Active'
+          assetType: null, // Set default assetType
+          operationalStatus: 'Operational', // Set default status
+          assetState: 'Active' // Set default state
         };
 
+        // Process headers and values
+        for (let j = 0; j < headers.length; j++) {
+          const header = headers[j];
+          const value = row[j];
+          
+          // Map Excel headers to database fields
+          switch(header) {
+            case 'Serial Number':
+              machineData.serialNumber = value;
+              break;
+            case 'Model Name':
+              machineData.modelName = value;
+              break;
+            case 'Manufacturer':
+              machineData.manufacturer = value;
+              break;
+            case 'Company':
+              machineData.company = value;
+              break;
+            case 'Email Address':
+              machineData.emailAddress = value;
+              break;
+            case 'New Tag Number':
+              machineData.newTagNumber = value;
+              break;
+            case 'Old Tag Number':
+              machineData.oldTagNumber = value;
+              break;
+            case 'Username':
+              machineData.username = value;
+              break;
+            case 'Supplier':
+              machineData.supplier = value;
+              break;
+            case 'Amount':
+              machineData.amount = value;
+              break;
+            case 'Invoice Number':
+              machineData.invoiceNumber = value;
+              break;
+            case 'Former User':
+              machineData.formerUser = value;
+              break;
+            case 'Purchase Date':
+              machineData.purchaseDate = value;
+              break;
+            case 'Location':
+              machineData.location = value;
+              break;
+            case 'Operational Status':
+              // Clean up the status value and validate it
+              const cleanStatus = value ? value.trim() : 'Operational';
+              if (['Operational', 'Under Maintenance', 'Repair Needed'].includes(cleanStatus)) {
+                machineData.operationalStatus = cleanStatus;
+              }
+              break;
+            case 'Asset State':
+              machineData.assetState = value ? value.trim() : 'Active';
+              break;
+            case 'Asset Type':
+              // Try to find the asset type by name
+              if (value) {
+                const assetType = await AssetType.findOne({ name: value.trim() });
+                if (assetType) {
+                  machineData.assetType = assetType._id;
+                }
+              }
+              break;
+          }
+        }
+
+        // Log processed machine data for debugging
+        console.log('Processed Machine Data:', machineData);
+
         // Validate required fields
-        if (!machineData.serialNumber || !machineData.modelName || 
-            !machineData.manufacturer || !machineData.company || 
-            !machineData.location) {
-          throw new Error('Missing required fields');
+        const missingFields = [];
+        if (!machineData.serialNumber) missingFields.push('Serial Number');
+        if (!machineData.modelName) missingFields.push('Model Name');
+        if (!machineData.manufacturer) missingFields.push('Manufacturer');
+        if (!machineData.company) missingFields.push('Company');
+        if (!machineData.location) missingFields.push('Location');
+        if (!machineData.assetType) missingFields.push('Asset Type');
+
+        if (missingFields.length > 0) {
+          throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+        }
+
+        // Check for duplicate serial number or tag number
+        const existingMachine = await Machine.findOne({
+          $or: [
+            { serialNumber: machineData.serialNumber },
+            { newTagNumber: machineData.newTagNumber }
+          ]
+        });
+
+        if (existingMachine) {
+          throw new Error(`Duplicate serial number or tag number found: ${machineData.serialNumber}`);
         }
 
         await Machine.create(machineData);
         results.success++;
+        console.log(`Successfully imported machine: ${machineData.serialNumber}`);
       } catch (error) {
+        // Get the serial number or row number for error reporting
+        const rowIdentifier = row ? (row[0] || `Row ${i + 1}`) : `Row ${i + 1}`;
+        const errorMessage = `Row ${i + 1}: ${error.message}`;
+        console.error(errorMessage);
         results.errors.push({
-          row: row['Serial Number'] || 'Unknown',
+          row: rowIdentifier,
           error: error.message
         });
       }
@@ -686,13 +788,15 @@ app.post('/upload-excel', upload.single('excelFile'), async (req, res) => {
     // Remove the uploaded file after processing
     fs.unlinkSync(req.file.path);
 
-    // Redirect with status message
-    const message = `Successfully imported ${results.success} machines. ` +
-                   `${results.errors.length} errors occurred.`;
-    res.redirect(`/?message=${encodeURIComponent(message)}`);
+    // Return JSON response with results
+    res.json({
+      success: true,
+      message: `Successfully imported ${results.success} machines. ${results.errors.length} errors occurred.`,
+      results: results
+    });
   } catch (error) {
     console.error('Error processing Excel file:', error);
-    res.status(500).send('Error processing Excel file');
+    res.status(500).json({ error: 'Error processing Excel file: ' + error.message });
   }
 });
 
@@ -796,28 +900,26 @@ app.post('/users/edit/:id', authenticateToken, isAdmin, async (req, res) => {
       });
     }
 
-    const updateData = {
-      username,
-      fullName,
-      email,
-      company,
-      role
-    };
-
-    // Only update password if provided
-    if (req.body.password) {
-      updateData.password = req.body.password;
-    }
-
-    const user = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
+    // Find the user first
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).render('error', { error: 'User not found' });
     }
+
+    // Update user fields
+    user.username = username;
+    user.fullName = fullName;
+    user.email = email;
+    user.company = company;
+    user.role = role;
+
+    // Update password if provided
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    // Save the user - this will trigger the pre-save middleware for password hashing
+    await user.save();
 
     res.redirect('/users');
   } catch (error) {

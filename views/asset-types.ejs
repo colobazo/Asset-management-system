@@ -411,7 +411,7 @@ function renderAttributes() {
   container.innerHTML = currentAttributes.map((attr, index) => `
     <div class="attribute-row">
       <input type="text" class="form-control" placeholder="Attribute Name" 
-        value="${attr.name}" onchange="updateAttribute(${index}, 'name', this.value)" required>
+        value="${attr.name || ''}" onchange="updateAttribute(${index}, 'name', this.value)" required>
       <select class="form-control" onchange="updateAttribute(${index}, 'type', this.value)">
         <option value="text" ${attr.type === 'text' ? 'selected' : ''}>Text</option>
         <option value="number" ${attr.type === 'number' ? 'selected' : ''}>Number</option>
@@ -430,8 +430,8 @@ function renderAttributes() {
     ${attr.type === 'select' ? `
       <div class="form-group">
         <input type="text" class="form-control" placeholder="Options (comma-separated)"
-          value="${attr.options.join(',')}" 
-          onchange="updateAttribute(${index}, 'options', this.value.split(','))">
+          value="${(attr.options || []).join(',')}" 
+          onchange="updateAttribute(${index}, 'options', this.value.split(',').map(opt => opt.trim()).filter(opt => opt))">
       </div>
     ` : ''}
   `).join('');
@@ -440,8 +440,8 @@ function renderAttributes() {
 function updateAttribute(index, field, value) {
   try {
     currentAttributes[index][field] = value;
-    if (field === 'type' && value === 'select' && !currentAttributes[index].options) {
-      currentAttributes[index].options = [];
+    if (field === 'type' && value === 'select') {
+      currentAttributes[index].options = currentAttributes[index].options || [];
     }
     renderAttributes();
   } catch (error) {

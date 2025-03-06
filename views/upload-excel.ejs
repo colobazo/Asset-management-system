@@ -29,7 +29,7 @@
     </div>
   </div>
   
-  <form action="/upload-excel" method="POST" enctype="multipart/form-data" class="excel-upload-form">
+  <form action="/upload-excel" method="POST" enctype="multipart/form-data" class="excel-upload-form" id="uploadForm">
     <div class="form-group">
       <label for="excelFile">Select Excel File</label>
       <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" required>
@@ -47,7 +47,7 @@
     </div>
     
     <div class="form-actions">
-      <button type="submit" class="button primary">Upload and Process</button>
+      <button type="submit" class="button primary" id="uploadButton">Upload and Process</button>
       <a href="/" class="button secondary">Cancel</a>
     </div>
   </form>
@@ -99,5 +99,49 @@
           '<tr><td>Error loading preview. Please ensure the file is in the correct format.</td></tr>';
       });
     }
+  });
+
+  // Handle form submission
+  document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('excelFile');
+    const uploadButton = document.getElementById('uploadButton');
+    
+    if (!fileInput.files[0]) {
+      alert('Please select an Excel file to upload');
+      return;
+    }
+
+    // Disable the upload button and show loading state
+    uploadButton.disabled = true;
+    uploadButton.textContent = 'Processing...';
+
+    const formData = new FormData(this);
+
+    // Submit the form
+    fetch('/upload-excel', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Show success message
+      alert(data.message);
+      
+      // Redirect to dashboard
+      window.location.href = '/';
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error processing Excel file: ' + error.message);
+      // Re-enable the upload button
+      uploadButton.disabled = false;
+      uploadButton.textContent = 'Upload and Process';
+    });
   });
 </script> 

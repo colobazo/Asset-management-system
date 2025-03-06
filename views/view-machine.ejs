@@ -75,7 +75,7 @@
           
           <div class="info-item">
             <h3>Amount</h3>
-            <p><%= machine.amount ? '₹' + parseFloat(machine.amount).toLocaleString() : 'N/A' %></p>
+            <p><%= machine.amount ? 'KES ' + parseFloat(machine.amount).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A' %></p>
           </div>
           
           <div class="info-item">

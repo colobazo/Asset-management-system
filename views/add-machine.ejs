@@ -115,9 +115,13 @@
                             value="<%= typeof formData !== 'undefined' ? formData.supplier : '' %>">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Amount</label>
-                        <input type="number" name="amount" class="form-control"
-                            value="<%= typeof formData !== 'undefined' ? formData.amount : '' %>">
+                        <label class="form-label">Amount (KES)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">KES</span>
+                            <input type="number" name="amount" class="form-control" min="0" step="1"
+                                value="<%= typeof formData !== 'undefined' ? formData.amount : '' %>">
+                        </div>
+                        <small class="form-text text-muted">Enter amount in Kenyan Shillings (whole numbers only)</small>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Invoice Number</label>
@@ -254,7 +258,7 @@ document.getElementById('assetTypeSelect').addEventListener('change', async func
     }
 });
 
-// Add form submission handler
+// Update form submission handler
 document.querySelector('form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -289,8 +293,11 @@ document.querySelector('form').addEventListener('submit', async function(e) {
             throw new Error(data.error || 'An error occurred while saving the asset');
         }
         
-        // Redirect on success
-        window.location.href = '/company?success=Asset added successfully';
+        // Get the company from the form
+        const company = document.querySelector('select[name="company"]').value;
+        
+        // Redirect to dashboard with company parameter
+        window.location.href = `/?company=${encodeURIComponent(company)}&success=Asset added successfully`;
     } catch (error) {
         console.error('Error:', error);
         
